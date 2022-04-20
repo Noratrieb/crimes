@@ -8,19 +8,22 @@ use std::mem::MaybeUninit;
 compile_error!("not supported");
 
 // a pointer sized buffer used to store a single pointer
-type Buf = MaybeUninit<[usize; 1]>;
+type Buf = MaybeUninit<[u8; 1]>;
 // a double pointer sized buffer used to store two pointers and rip out the center
-type DBuf = MaybeUninit<[usize; 2]>;
+type DBuf = MaybeUninit<[u8; 2]>;
 
 /// just a pointer, doesn't matter which one
 type Ptr = *const u8;
 
+#[repr(align(8))]
+struct Align8<T>(T);
+
 /// combines two provenances into a single pointer sized value
 unsafe fn combine(prov_a: Ptr, prov_b: Ptr) -> Buf {
     // a buffer where we write in both pointers and then read out of from center, 1/2 of each provenance
-    let mut double_buf = DBuf::zeroed();
+    let mut double_buf = Align8(DBuf::zeroed());
 
-    let ptr = double_buf.as_mut_ptr();
+    let ptr = double_buf.0.as_mut_ptr();
 
     // write the a pointer to the first slot
     ptr.cast::<Ptr>().write(prov_a);
@@ -34,11 +37,12 @@ unsafe fn combine(prov_a: Ptr, prov_b: Ptr) -> Buf {
 
 /// extracts the two provenances from [`combine`]
 unsafe fn extract(buf: Buf) -> (Ptr, Ptr) {
-    let mut double_buf = DBuf::zeroed();
+    let mut double_buf = Align8(DBuf::zeroed());
 
     // write the the pointer sized value into the center of the double buffer
     // splitting the provenances between the first and second slow
     double_buf
+        .0
         .as_mut_ptr()
         .cast::<u8>()
         .add(4)
@@ -46,12 +50,12 @@ unsafe fn extract(buf: Buf) -> (Ptr, Ptr) {
         .write(buf);
 
     // a copy of the first half of the dbuf, where the second half of it contains a provenance
-    let mut a_buf: Buf = double_buf.as_ptr().cast::<Buf>().read();
+    let mut a_buf: Buf = double_buf.0.as_ptr().cast::<Buf>().read();
     // a copy of the second half of the dbuf, where the first half of it contains b provenance
-    let mut b_buf: Buf = double_buf.as_ptr().cast::<Buf>().add(1).read();
+    let mut b_buf: Buf = double_buf.0.as_ptr().cast::<Buf>().add(1).read();
 
     // the pointer to the dbuf
-    let ptr = double_buf.as_ptr();
+    let ptr = double_buf.0.as_ptr();
 
     // copy the 4 a provenance bytes from the dbuf into the empty space in the a_buf
     // this way a_buf now contains 8 a provenance bytes
