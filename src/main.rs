@@ -77,7 +77,7 @@ unsafe fn extract(buf: Buf) -> (Ptr, Ptr) {
 
 fn main() {
     unsafe {
-        // two innocent looking variants
+        // two innocent looking integers
         let a = 5u8;
         let b = 3u8;
 
