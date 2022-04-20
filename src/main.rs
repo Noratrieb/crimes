@@ -8,9 +8,9 @@ use std::mem::MaybeUninit;
 compile_error!("not supported");
 
 // a pointer sized buffer used to store a single pointer
-type Buf = MaybeUninit<[u8; 1]>;
+type Buf = MaybeUninit<[u8; 8]>;
 // a double pointer sized buffer used to store two pointers and rip out the center
-type DBuf = MaybeUninit<[u8; 2]>;
+type DBuf = MaybeUninit<[u8; 16]>;
 
 /// just a pointer, doesn't matter which one
 type Ptr = *const u8;
