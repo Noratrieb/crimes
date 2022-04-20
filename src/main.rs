@@ -15,6 +15,7 @@ type DBuf = MaybeUninit<[u8; 2]>;
 /// just a pointer, doesn't matter which one
 type Ptr = *const u8;
 
+#[repr(C)]
 #[repr(align(8))]
 struct Align8<T>(T);
 
