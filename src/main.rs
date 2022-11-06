@@ -74,8 +74,8 @@ unsafe fn extract(buf: Buf) -> (Ptr, Ptr) {
     );
 
     // both buffers are now filled with fancy provenance bytes, read the pointers out and return them
-    let a = a_buf.as_ptr().cast::<Ptr>().read();
-    let b = b_buf.as_ptr().cast::<Ptr>().read();
+    let a = a_buf.as_ptr().cast::<Ptr>().read_unaligned();
+    let b = b_buf.as_ptr().cast::<Ptr>().read_unaligned();
 
     (a, b)
 }
